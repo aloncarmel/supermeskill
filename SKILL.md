@@ -944,6 +944,8 @@ From search results, each product:
 | Rami Levy | rami-levy.co.il | Nuxt.js (Vue SSR) | Email + SMS OTP | **Supported** |
 | Yochananof | yochananof.co.il | — | — | Planned |
 | Victory | victory-online.co.il | — | — | Planned |
+| Tiv Taam | tivtaam.co.il | — | — | Planned |
+| Osher Ad | osherad.co.il | — | — | Planned |
 
 ## Error Handling
 
