@@ -1,10 +1,10 @@
 # Superme Skill for Claude Code
 
-Online supermarket automation skill for [Claude Code](https://claude.ai/claude-code). Supports **Shufersal**, **Keshet Teamim**, and **Rami Levy**.
+Online supermarket automation skill for [Claude Code](https://claude.ai/claude-code). Supports **Shufersal**, **Keshet Teamim**, **Rami Levy**, and **Tiv Taam**.
 
 ## Features
 
-- **Login** — Authenticate to any supported vendor (email/password, phone/SMS OTP, or email/SMS OTP)
+- **Login** — Authenticate to any supported vendor (email+password, phone+SMS OTP, or email+SMS OTP)
 - **Search** — Find products with prices, transliterated for terminal display
 - **Add to Cart/List** — Add search results to a wishlist (Shufersal) or cart (Rami Levy, Keshet Teamim)
 - **Magicorder** — Consolidate past orders into one list/cart (deduped)
@@ -29,6 +29,7 @@ cp SKILL.md ~/.claude/skills/superme/
 ```
 /superme login shufersal <email> <password>
 /superme login rami <email>
+/superme login tivtaam <email> <password>
 /superme login keshet <phone>
 /superme search <product>
 /superme add <#>
@@ -44,6 +45,7 @@ cp SKILL.md ~/.claude/skills/superme/
 - Uses `browser-use` CLI for login (OTP flows require browser). Search and cart operations use direct REST APIs where available.
 - **Shufersal**: Vue.js frontend + REST APIs. Wishlists via `/wishlist/*` endpoints. Products added through the Vue component tree.
 - **Rami Levy**: Nuxt.js (Vue SSR). Pure REST APIs for search (`POST /api/catalog`), cart (`POST /api/v2/cart`), and shopping lists (`POST shop-lists`). Auth via `ecomtoken` JWT header.
+- **Tiv Taam**: Prutah platform (AngularJS). Same as Keshet Teamim but with email+password login. REST API for search, Angular `Cart` service for cart, `shopLists` API for lists.
 - **Keshet Teamim**: Prutah platform (AngularJS). Bearer token auth, REST API for search, Angular `Cart` service for cart operations.
 
 ## Supported Vendors
@@ -52,10 +54,10 @@ cp SKILL.md ~/.claude/skills/superme/
 |--------|----------|-------|--------|------|-------|--------|
 | Shufersal | Custom (Vue.js) | Email + password | Browser scrape | Wishlist (Vue API) | Wishlist API | **Supported** |
 | Rami Levy | Nuxt.js (Vue SSR) | Email + SMS OTP | REST API | REST API | REST API | **Supported** |
+| Tiv Taam | Prutah (AngularJS) | Email + password | REST API | Angular service | REST API | **Supported** |
 | Keshet Teamim | Prutah (AngularJS) | Phone + SMS OTP | REST API | Angular service | — | **Supported** |
 | Yochananof | — | — | — | — | — | Planned |
 | Victory | — | — | — | — | — | Planned |
-| Tiv Taam | — | — | — | — | — | Planned |
 | Osher Ad | — | — | — | — | — | Planned |
 
 ## License

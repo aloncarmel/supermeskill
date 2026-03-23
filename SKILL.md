@@ -1,6 +1,6 @@
 ---
 name: superme
-description: "Online supermarket automation. Login, search products, add to cart/wishlists, magicorder from past orders. Supports Shufersal, Keshet Teamim, and Rami Levy. Usage: /superme login <vendor>, /superme search <product>, /superme add <#>, /superme magicorder, /superme lists, /superme cart, /superme help"
+description: "Online supermarket automation. Login, search products, add to cart/wishlists, magicorder from past orders. Supports Shufersal, Keshet Teamim, Rami Levy, and Tiv Taam. Usage: /superme login <vendor>, /superme search <product>, /superme add <#>, /superme magicorder, /superme lists, /superme cart, /superme help"
 risk: medium
 source: local
 date_added: "2026-03-21"
@@ -30,6 +30,7 @@ The skill works against **one vendor at a time**. The active vendor is stored in
 - `shufersal` — Shufersal Online (shufersal.co.il)
 - `keshet` — Keshet Teamim (keshet-teamim.co.il)
 - `rami` — Rami Levy (rami-levy.co.il)
+- `tivtaam` — Tiv Taam (tivtaam.co.il)
 
 **IMPORTANT — Announce the active vendor:**
 - After every login, announce: "Switched to **[Vendor Name]**. All commands now target [Vendor Name]."
@@ -56,6 +57,10 @@ The skill tracks state across commands within a conversation using temp files:
 ### Rami Levy-specific
 - `/tmp/superme_rami_token.txt` — JWT token (header: `ecomtoken`)
 - `/tmp/superme_rami_store_id.txt` — store ID (default: 331)
+
+### Tiv Taam-specific
+- `/tmp/superme_tivtaam_token.txt` — Bearer token for API calls
+- `/tmp/superme_tivtaam_user_id.txt` — user ID for API calls
 
 ### Shufersal-specific
 - `/tmp/superme_cookies.json` — exported browser cookies
@@ -265,6 +270,42 @@ browser-use --session superme eval "var store = document.querySelector('#__nuxt'
 ```bash
 echo "rami" > /tmp/superme_vendor.txt
 ```
+
+---
+
+#### `/superme login tivtaam`
+
+Log in to Tiv Taam via email + password.
+
+**Steps:**
+
+1. Ask the user for credentials if not provided inline. Parse from args if given as `/superme login tivtaam user@email.com password`.
+
+2. Open the login page:
+```bash
+browser-use --headed --session superme open "https://www.tivtaam.co.il/?loginOrRegister=1"
+```
+
+3. Wait for load. Fill email and password:
+```bash
+browser-use --session superme eval "document.getElementById('email').value = 'EMAIL'; document.getElementById('email').dispatchEvent(new Event('input', {bubbles: true}));"
+browser-use --session superme eval "var pwd = document.querySelector('input[type=password]'); pwd.value = 'PASS'; pwd.dispatchEvent(new Event('input', {bubbles: true}));"
+```
+
+4. Find and click the submit button (`<button type=submit />`).
+
+5. Wait 5 seconds. A notification popup may appear — close it by clicking "אישור".
+
+6. Extract auth data:
+```bash
+browser-use --session superme eval "var User = angular.element(document.body).injector().get('User'); JSON.stringify({token: User.session.token, userId: User.session.userId, verified: User.isVerified()})"
+```
+
+7. Save session data to `/tmp/superme_tivtaam_token.txt` and `/tmp/superme_tivtaam_user_id.txt`.
+
+8. Save vendor: `echo "tivtaam" > /tmp/superme_vendor.txt`
+
+**NOTE:** Tiv Taam uses the Prutah platform (same as Keshet Teamim). Login is email+password (no OTP). A notification popup about preferences may appear after login — close it.
 
 ---
 
@@ -906,6 +947,40 @@ From search results, each product:
 
 ---
 
+### Tiv Taam
+
+#### Platform
+
+Tiv Taam runs on the **Prutah** platform (same as Keshet Teamim). AngularJS 1.8.0, app module `ZuZ`. Login is email + password (no OTP).
+
+**Key constants:**
+- Retailer ID: `1062`
+- Default Branch ID: `924` (Ramat HaChayal)
+- App ID: `4`
+- Language ID: `1` (Hebrew)
+- Domain: `www.tivtaam.co.il`
+
+#### API Endpoints
+
+Same Prutah pattern as Keshet Teamim but with different retailer/branch IDs and a slightly different shopLists path.
+
+| Endpoint | Method | Auth | Notes |
+|----------|--------|------|-------|
+| `/v2/retailers/1062/branches/924/products` | GET | Bearer token | Search products. Same params as Keshet. |
+| `/retailers/1062/users/{userId}/shopLists?appId=4` | GET | Bearer token | Get user's shopping lists. **Note: camelCase `shopLists`, no `/v2/` prefix.** |
+| `/retailers/1062/users/{userId}/shopLists?appId=4` | POST | Bearer token | Create shopping list. Body: `{name: "...", products: [{productId, quantity, isCase}]}` |
+
+#### Search, Cart, and Add
+
+Tiv Taam uses the exact same Prutah flows as Keshet Teamim:
+- **Search**: Same API pattern with `retailerId=1062`, `branchId=924`
+- **Cart**: Same Angular `Cart` service — `Cart.addLine({product: {id}, quantity, isCase})`
+- **Add to list**: POST to `shopLists` endpoint with `{name, products: [{productId, quantity, isCase}]}`
+
+Use the Keshet Teamim flow documentation, replacing retailer ID `1219` with `1062` and branch ID `2585` with `924`.
+
+---
+
 ## Known Issues
 
 ### Shufersal
@@ -919,6 +994,11 @@ From search results, each product:
 - **Cart API timeouts**: The `/api/v2/cart` POST can return 504 Gateway Timeout under load. The UI button click approach is more reliable for adding items.
 - **Search results async**: Search results load asynchronously into the `online-search` Vue component. May need to wait and retry extraction.
 - **Hebrew in CLI args**: Same as Shufersal — use `eval` to set input values.
+
+### Tiv Taam
+- **Notification popup**: A notification/preferences popup appears after login. Must be closed (click "אישור") before interacting with the page.
+- **shopLists API path**: Uses camelCase `shopLists` without `/v2/` prefix, unlike the search API which uses `/v2/`.
+- **Same Prutah quirks as Keshet Teamim**: Branch-specific pricing, delivery dialog on first cart add.
 
 ### Keshet Teamim
 - **SMS OTP login**: Cannot be fully automated — user must provide the SMS code.
@@ -942,9 +1022,9 @@ From search results, each product:
 | Shufersal | shufersal.co.il | Custom (Vue.js) | Email + password | **Supported** |
 | Keshet Teamim | keshet-teamim.co.il | Prutah (AngularJS) | Phone + SMS OTP | **Supported** |
 | Rami Levy | rami-levy.co.il | Nuxt.js (Vue SSR) | Email + SMS OTP | **Supported** |
+| Tiv Taam | tivtaam.co.il | Prutah (AngularJS) | Email + password | **Supported** |
 | Yochananof | yochananof.co.il | — | — | Planned |
 | Victory | victory-online.co.il | — | — | Planned |
-| Tiv Taam | tivtaam.co.il | — | — | Planned |
 | Osher Ad | osherad.co.il | — | — | Planned |
 
 ## Error Handling
