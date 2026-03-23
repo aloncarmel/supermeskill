@@ -1,14 +1,14 @@
 # Superme Skill for Claude Code
 
-Online supermarket automation skill for [Claude Code](https://claude.ai/claude-code). Currently supports **Shufersal** (Israel's largest supermarket chain).
+Online supermarket automation skill for [Claude Code](https://claude.ai/claude-code). Supports **Shufersal** and **Keshet Teamim**.
 
 ## Features
 
-- **Login** — Authenticate to Shufersal Online
+- **Login** — Authenticate to Shufersal (email/password) or Keshet Teamim (phone/SMS OTP)
 - **Search** — Find products with prices, transliterated for terminal display
-- **Add to List** — Add search results to a session wishlist
-- **Magicorder** — Consolidate your last 5 orders into one wishlist (deduped)
-- **Lists** — View your Superme wishlists
+- **Add to Cart/List** — Add search results to a wishlist (Shufersal) or cart (Keshet Teamim)
+- **Magicorder** — Consolidate your last 5 orders into one list/cart (deduped)
+- **Lists / Cart** — View your wishlists or cart contents
 
 ## Installation
 
@@ -22,16 +22,18 @@ cp SKILL.md ~/.claude/skills/superme/
 ### Prerequisites
 
 - [browser-use](https://github.com/browser-use/browser-use) CLI: `uv tool install browser-use --python 3.12`
-- A Shufersal Online account
+- A Shufersal Online account and/or a Keshet Teamim account
 
 ## Usage
 
 ```
-/superme login <email> <password>
+/superme login shufersal <email> <password>
+/superme login keshet <phone>
 /superme search <product>
 /superme add <#>
 /superme magicorder
-/superme lists
+/superme lists                  (Shufersal)
+/superme cart                   (Keshet Teamim)
 /superme close
 /superme help
 ```
@@ -39,19 +41,18 @@ cp SKILL.md ~/.claude/skills/superme/
 ## How it works
 
 - Uses `browser-use` CLI to automate a Chromium browser session
-- Interacts with Shufersal's Vue.js frontend and REST APIs
-- Manages wishlists via the internal `/wishlist/*` API endpoints
-- Fetches order history via `/my-account/orders` API
-- Products are added to wishlists programmatically through the Vue component tree
+- **Shufersal**: Interacts with Vue.js frontend and REST APIs. Manages wishlists via `/wishlist/*` endpoints. Products added through the Vue component tree.
+- **Keshet Teamim**: Runs on the Prutah platform (AngularJS). Uses Bearer token auth and direct REST API for search. Products added to server-side cart via Angular `Cart` service.
 
 ## Supported Vendors
 
-| Vendor | Status |
-|--------|--------|
-| Shufersal | Supported |
-| Rami Levy | Planned |
-| Yochananof | Planned |
-| Victory | Planned |
+| Vendor | Platform | Login | Status |
+|--------|----------|-------|--------|
+| Shufersal | Custom (Vue.js) | Email + password | Supported |
+| Keshet Teamim | Prutah (AngularJS) | Phone + SMS OTP | Supported |
+| Rami Levy | — | — | Planned |
+| Yochananof | — | — | Planned |
+| Victory | — | — | Planned |
 
 ## License
 
