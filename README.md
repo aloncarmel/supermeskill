@@ -18,6 +18,28 @@ A supply chain attack was discovered affecting `browser-use` installations that 
 
 ## Installation
 
+### Option 1: Using `npx skills` (Recommended)
+
+```bash
+npx skills add aloncarmel/supermeskill
+```
+
+This automatically detects your installed coding agents (Claude Code, Cursor, Codex, and [39 more](https://github.com/vercel-labs/skills#supported-agents)) and installs the skill to the right location.
+
+To install globally (available across all projects):
+
+```bash
+npx skills add aloncarmel/supermeskill -g
+```
+
+To target a specific agent:
+
+```bash
+npx skills add aloncarmel/supermeskill -a claude-code -g
+```
+
+### Option 2: Manual Installation
+
 Copy `SKILL.md` to your Claude Code skills directory:
 
 ```bash

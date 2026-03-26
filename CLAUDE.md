@@ -4,9 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A Claude Code **skill** (not a traditional codebase) that automates Israeli online supermarket shopping via browser automation. The entire skill is defined in `SKILL.md`, which Claude Code loads as a slash command (`/superme`). Supports **Shufersal** and **Keshet Teamim**; Rami Levy, Yochananof, and Victory are planned.
+A Claude Code **skill** (not a traditional codebase) that automates Israeli online supermarket shopping via browser automation. The entire skill is defined in `SKILL.md`, which Claude Code loads as a slash command (`/superme`). Supports **Shufersal**, **Keshet Teamim**, **Rami Levy**, and **Tiv Taam**; Yochananof and Victory are planned.
 
 ## Installation
+
+### Via `npx skills` (Recommended)
+
+```bash
+npx skills add aloncarmel/supermeskill -g
+```
+
+### Manual
 
 ```bash
 mkdir -p ~/.claude/skills/superme
