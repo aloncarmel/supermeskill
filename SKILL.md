@@ -1,6 +1,6 @@
 ---
 name: superme
-description: "Online supermarket automation. Login, search products, add to cart/wishlists, magicorder from past orders. Supports Shufersal, Keshet Teamim, Rami Levy, and Tiv Taam. Usage: /superme login <vendor>, /superme search <product>, /superme add <#>, /superme magicorder, /superme lists, /superme cart, /superme help"
+description: "Online supermarket automation. Login, search products, add to cart/wishlists, magicorder from past orders, smart-list for Tiv Taam. Supports Shufersal, Keshet Teamim, Rami Levy, and Tiv Taam. Usage: /superme login vendor, /superme search product, /superme add #, /superme magicorder, /superme lists, /superme cart, /superme smart-list, /superme help"
 risk: medium
 source: local
 date_added: "2026-03-21"
@@ -87,6 +87,7 @@ Show available commands:
 /superme magicorder                           Consolidate last 5 orders into one list
 /superme lists                                View Superme wishlists (Shufersal)
 /superme cart                                 View current cart (Keshet Teamim)
+/superme smart-list                           Show items from Tiv Taam smart list
 /superme close                                Close the browser session
 ```
 
@@ -761,6 +762,51 @@ browser-use --session superme eval "var Cart = angular.element(document.body).in
 4. Show cart summary: total items, subtotal, any discounts.
 
 5. Link: `https://www.keshet-teamim.co.il/cart`
+
+---
+
+### `/superme smart-list`
+
+Load items from the Tiv Taam Smart List page. **Tiv Taam only.**
+
+**Steps:**
+
+1. Read vendor from `/tmp/superme_vendor.txt`. If not `tivtaam`, tell the user this command is only available for Tiv Taam and suggest logging in with `/superme login tivtaam`.
+
+2. Read token from `/tmp/superme_tivtaam_token.txt`. If missing, tell user to login first.
+
+3. Navigate to the smart list page:
+```bash
+browser-use --headed --session superme open "https://www.tivtaam.co.il/smart-list"
+```
+
+4. Wait 5 seconds for the page to fully load (AngularJS rendering takes time).
+
+5. Wait 5 seconds for the page to render, then extract items from the table:
+```bash
+browser-use --session superme eval "
+var rows = document.querySelectorAll('tr');
+var items = [];
+rows.forEach(function(row) {
+  var tds = row.querySelectorAll('td');
+  var nameTd = tds[1];
+  var priceTd = tds[4];
+  var qtyInput = row.querySelector('input[type=number]');
+  if (nameTd && priceTd && priceTd.textContent.includes('₪')) {
+    items.push({
+      name: nameTd.textContent.trim(),
+      price: priceTd.textContent.trim(),
+      qty: qtyInput ? qtyInput.value : '1'
+    });
+  }
+});
+JSON.stringify(items);
+"
+```
+
+The page title is "המוצרים שאני בד\"כ קונה" and shows total item count as `X/N` in the header.
+
+6. Present items to the user **in English** (transliterate Hebrew names). Columns: #, Product Name, Price, Qty. Show the total item count at the end.
 
 ---
 
